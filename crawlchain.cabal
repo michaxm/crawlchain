@@ -3,11 +3,12 @@
 
 name:                crawlchain
 version:             0.1.0.7
-synopsis:            Definition and execution of web crawling actions
+synopsis:            Library for simulating user crawl paths (trees) with selectors.
 description:         Warning: experimental
+license:             BSD3
 license-file:        LICENSE
 author:              Axel Mannhardt
-maintainer:          notset@example.com
+maintainer:          7a3ggptwts@snkmail.com
 category:            Web
 build-type:          Simple
 cabal-version:       >=1.22
@@ -32,7 +33,7 @@ library
                      , Crawling
                      , Downloading
                      , Report
-  build-depends:       base
+  build-depends:       base < 4.9
                      , bytestring
                      , directory
                      , HTTP
