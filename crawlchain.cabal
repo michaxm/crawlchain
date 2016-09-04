@@ -2,9 +2,10 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                crawlchain
-version:             0.1.0.8
-synopsis:            Library for simulating user crawl paths (trees) with selectors.
-description:         Warning: experimental
+version:             0.1.0.9
+synopsis:            Simulation user crawl paths
+description:         Library for simulating user crawl paths (trees) with selectors - takes an initial action and a chain of processing actions to crawl a tree (lazy, depth first) searching for a matching branch.
+stability:           experimental
 license:             BSD3
 license-file:        LICENSE
 author:              Axel Mannhardt
