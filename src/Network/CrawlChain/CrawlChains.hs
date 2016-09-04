@@ -1,4 +1,4 @@
-module CrawlChains (
+module Network.CrawlChain.CrawlChains (
   executeCrawlChain,
   CrawlDirective(..),
   DirectiveChainResult, lastResult, resultHistory, showResultPath,
@@ -10,12 +10,12 @@ import Data.List (intersperse)
 import Data.List.Split (splitOn)
 import System.IO.Unsafe as Unsafe (unsafeInterleaveIO)
 
-import CrawlAction
-import CrawlResult
-import CrawlingContext
-import CrawlDirective
-import DirectiveChainResult
-import Report
+import Network.CrawlChain.CrawlAction
+import Network.CrawlChain.CrawlResult
+import Network.CrawlChain.CrawlingContext
+import Network.CrawlChain.CrawlDirective
+import Network.CrawlChain.DirectiveChainResult
+import Network.CrawlChain.Report
 
 
 executeCrawlChain :: CrawlingContext a => a -> CrawlAction -> CrawlDirective -> IO [DirectiveChainResult]

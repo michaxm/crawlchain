@@ -1,4 +1,4 @@
-module HtmlFiltering (
+module Text.HTML.CrawlChain.HtmlFiltering (
   extractLinks, extractLinksMatching, extractLinksWithAttributes, extractLinksFilteringUrlAttrs, extractLinksFilteringAll,
   findAllUrlsEndingWith, findFirstLinkAfter,
   extractFirstForm,
@@ -12,7 +12,7 @@ import Data.List.Split (splitOneOf)
 import Data.Maybe (fromMaybe)
 import Text.HTML.TagSoup
 
-import CrawlAction
+import Network.CrawlChain.CrawlAction
 
 type TagS = Tag String
 type AttrFilter = [(String, String)] -> Bool

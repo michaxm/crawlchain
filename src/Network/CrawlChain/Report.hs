@@ -1,4 +1,4 @@
-module Report (Report (..), showFullReport) where
+module Network.CrawlChain.Report (Report (..), showFullReport) where
 
 data Report = Report { reportMsg :: String, reportDetails :: String }
 instance Show Report where

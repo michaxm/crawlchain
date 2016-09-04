@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                crawlchain
-version:             0.1.0.7
+version:             0.1.0.8
 synopsis:            Library for simulating user crawl paths (trees) with selectors.
 description:         Warning: experimental
 license:             BSD3
@@ -15,24 +15,24 @@ cabal-version:       >=1.22
 
 library
   hs-source-dirs:      src
-  exposed-modules:     CrawlChain
-                     , CrawlingParameters
-                     , BasicTemplates
-                     , CrawlAction
-                     , CrawlDirective
-                     , CrawlResult
+  exposed-modules:     Network.CrawlChain.CrawlChain
+                     , Network.CrawlChain.CrawlingParameters
+                     , Network.CrawlChain.BasicTemplates
+                     , Network.CrawlChain.CrawlAction
+                     , Network.CrawlChain.CrawlDirective
+                     , Network.CrawlChain.CrawlResult
 -- TODO refactor: extract http utils
-                     , HTTPUtil
-                     , HtmlFiltering
-                     , Storing
+                     , Network.URI.Util
+                     , Text.HTML.CrawlChain.HtmlFiltering
+                     , Network.CrawlChain.Storing
                        -- visible for tests
-                     , CrawlingContext
-                     , DirectiveChainResult
-  other-modules:       Constants
-                     , CrawlChains
-                     , Crawling
-                     , Downloading
-                     , Report
+                     , Network.CrawlChain.CrawlingContext
+                     , Network.CrawlChain.DirectiveChainResult
+  other-modules:       Network.CrawlChain.Constants
+                     , Network.CrawlChain.CrawlChains
+                     , Network.CrawlChain.Crawling
+                     , Network.CrawlChain.Downloading
+                     , Network.CrawlChain.Report
   build-depends:       base < 4.9
                      , bytestring
                      , directory

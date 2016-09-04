@@ -1,4 +1,4 @@
-module BasicTemplates (
+module Network.CrawlChain.BasicTemplates (
   searchWebTemplate,
   searchWebTemplateAndProcessHits
   ) where
@@ -7,11 +7,11 @@ import Data.List (nub, isInfixOf, isSuffixOf)
 import Data.List.Split (splitOn)
 import Data.Maybe (maybeToList)
 
-import CrawlAction
-import CrawlResult
-import CrawlDirective
-import CrawlingParameters
-import HtmlFiltering
+import Network.CrawlChain.CrawlAction
+import Network.CrawlChain.CrawlResult
+import Network.CrawlChain.CrawlDirective
+import Network.CrawlChain.CrawlingParameters
+import Text.HTML.CrawlChain.HtmlFiltering
 
 -- generic search template
 

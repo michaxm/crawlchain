@@ -1,4 +1,4 @@
-module CrawlChain
+module Network.CrawlChain.CrawlChain
        (executeActions, crawlChain, crawlForUrl,
         executeCrawlChain -- visible for tests
        )
@@ -9,14 +9,14 @@ import Data.List.Split (splitOn)
 import System.Environment (getArgs, getProgName)
 import System.Exit (exitFailure)
 
-import CrawlAction
-import CrawlingParameters
-import CrawlChains
-import CrawlingContext (defaultContext, storingContext)
-import DirectiveChainResult (extractFirstResult)
-import Downloading
-import Storing
-import BasicTemplates
+import Network.CrawlChain.CrawlAction
+import Network.CrawlChain.CrawlingParameters
+import Network.CrawlChain.CrawlChains
+import Network.CrawlChain.CrawlingContext (defaultContext, storingContext)
+import Network.CrawlChain.DirectiveChainResult (extractFirstResult)
+import Network.CrawlChain.Downloading
+import Network.CrawlChain.Storing
+import Network.CrawlChain.BasicTemplates
 
 executeActions :: CrawlingParameters -> String -> String -> IO ()
 executeActions args dir fName = do

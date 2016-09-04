@@ -1,6 +1,6 @@
-module CrawlResult where
+module Network.CrawlChain.CrawlResult where
 
-import CrawlAction
+import Network.CrawlChain.CrawlAction
 
 data CrawlResult = CrawlResult {
   crawlingAction :: CrawlAction,

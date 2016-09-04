@@ -1,4 +1,4 @@
-module Downloading (downloadTo, storeDownloadAction) where
+module Network.CrawlChain.Downloading (downloadTo, storeDownloadAction) where
 
 import Data.ByteString as B
 import Network.HTTP
@@ -7,9 +7,9 @@ import Network.HTTP
 --import Pipes.HTTP
 --import qualified Pipes.ByteString as PB  -- from `pipes-bytestring`
 
-import CrawlAction
-import HTTPUtil
-import Storing
+import Network.CrawlChain.CrawlAction
+import Network.URI.Util
+import Network.CrawlChain.Storing
 
 downloadTo :: Maybe String -> String -> CrawlAction -> IO ()
 downloadTo dir destination (GetRequest url) = buildAndCreateTargetDir True dir destination >>= \fulldestination -> do

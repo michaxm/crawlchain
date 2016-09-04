@@ -1,7 +1,7 @@
-module CrawlingParameters where
+module Network.CrawlChain.CrawlingParameters where
 
-import CrawlAction
-import CrawlDirective
+import Network.CrawlChain.CrawlAction
+import Network.CrawlChain.CrawlDirective
 
 data CrawlingParameters = CrawlingParameters {
   paramInitialAction :: CrawlAction,

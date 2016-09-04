@@ -1,4 +1,4 @@
-module Storing where
+module Network.CrawlChain.Storing where
 
 import System.Directory
 

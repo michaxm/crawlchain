@@ -1,4 +1,4 @@
-module HTTPUtil (toURI) where
+module Network.URI.Util (toURI) where
 
 import Data.Maybe (fromMaybe)
 import Network.URI

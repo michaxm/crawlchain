@@ -1,4 +1,4 @@
-module Crawling (
+module Network.CrawlChain.Crawling (
   crawl,
   crawlAndStore, CrawlActionDescriber,
   Crawler
@@ -13,9 +13,9 @@ import Network.HTTP
 import Network.Stream (Result)
 import Network.URI
 
-import CrawlAction
-import CrawlResult
-import HTTPUtil
+import Network.CrawlChain.CrawlAction
+import Network.CrawlChain.CrawlResult
+import Network.URI.Util
 
 type RequestType = Request_String
 type Crawler = CrawlAction -> IO CrawlResult

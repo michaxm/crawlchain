@@ -1,11 +1,11 @@
-module CrawlingContext (
+module Network.CrawlChain.CrawlingContext (
     CrawlingContext, DefaultCrawlingContext(..), crawler,
     defaultContext, storingContext, bufferingFilename
   ) where
 
-import Constants
-import Crawling (crawl, crawlAndStore, Crawler)
-import CrawlAction
+import Network.CrawlChain.Constants
+import Network.CrawlChain.Crawling (crawl, crawlAndStore, Crawler)
+import Network.CrawlChain.CrawlAction
 
 class CrawlingContext a where
   crawler :: a -> Crawler

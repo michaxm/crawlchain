@@ -1,9 +1,9 @@
-module DirectiveChainResult (DirectiveChainResult (..), showResultPath, extractFirstResult) where
+module Network.CrawlChain.DirectiveChainResult (DirectiveChainResult (..), showResultPath, extractFirstResult) where
 
 import Data.Maybe (listToMaybe)
 
-import CrawlAction
-import Report
+import Network.CrawlChain.CrawlAction
+import Network.CrawlChain.Report
 
 data DirectiveChainResult = DirectiveChainResult {
                               resultHistory :: [Report],

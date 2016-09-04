@@ -1,7 +1,7 @@
-module CrawlDirective where
+module Network.CrawlChain.CrawlDirective where
 
-import CrawlAction
-import CrawlResult
+import Network.CrawlChain.CrawlAction
+import Network.CrawlChain.CrawlResult
 
 data CrawlDirective =
     SimpleDirective (String -> [CrawlAction])          -- access content to find absolute follow-up urls
