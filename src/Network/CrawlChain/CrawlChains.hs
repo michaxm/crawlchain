@@ -51,6 +51,11 @@ followDirective collectedResults reportPath context crawlAction = followDirectiv
     followDirective' (SimpleDirective logic) = crawlAndSearch (logic . crawlingContent)
     followDirective' (RelativeDirective logic) = crawlAndSearch (makeAbsoluteLogicMapper logic)
     followDirective' (FollowUpDirective logic) = crawlAndSearch logic
+    followDirective' (RetryDirective num d) = do
+      results <- followDirective' d
+      if num > 0 && all (null . lastResult) results
+        then followDirective' $ RetryDirective (num-1) d
+        else return results
     followDirective' (AlternativeDirective a1 a2) = do
       a1Results <- followDirective' a1
       if all (null . lastResult) a1Results -- only use alternative if no results at all

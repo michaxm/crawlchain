@@ -17,6 +17,7 @@ import Text.HTML.CrawlChain.HtmlFiltering
 
 searchWebTemplate :: String -> String -> (CrawlAction, CrawlDirective)
 searchWebTemplate site searchTerm = searchWebTemplateAndProcessHits site searchTerm [] Nothing (id . snd)
+
 searchWebTemplateAndProcessHits :: String -> String
                                    -> [String] -> Maybe ContainedTextFilter
                                    -> ((CrawlAction, [CrawlAction]) -> [CrawlAction])
