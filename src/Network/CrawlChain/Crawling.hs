@@ -4,17 +4,13 @@ module Network.CrawlChain.Crawling (
   Crawler
 ) where
 
-import Prelude hiding (log)
-
-import Control.Concurrent (threadDelay)
-import Data.Time.Format (formatTime, defaultTimeLocale)
-import Data.Time.LocalTime (getZonedTime)
 import Network.HTTP
 import Network.Stream (Result)
 import Network.URI
 
 import Network.CrawlChain.CrawlAction
 import Network.CrawlChain.CrawlResult
+import Network.CrawlChain.Util
 import Network.URI.Util
 
 type RequestType = Request_String
@@ -22,7 +18,7 @@ type Crawler = CrawlAction -> IO CrawlResult
 type CrawlActionDescriber = CrawlAction -> String
 
 crawl :: Crawler
-crawl action = log "delaying crawl for 1s" >> threadDelay 1000000 >> crawl' action 3 (toRequest action)
+crawl action = delaySeconds 1 >> crawl' action 3 (toRequest action)
 
 crawlAndStore :: CrawlActionDescriber -> Crawler
 crawlAndStore describer = (>>= store) . crawl
@@ -40,13 +36,6 @@ crawlAndStore describer = (>>= store) . crawl
                 writeFile' n c = do
                   putStrLn $ "writing to " ++ n
                   writeFile n c
-
-log :: String -> IO ()
-log msg = printTime >> putStr ("> " ++ msg ++ "\n")
-  where
-    printTime = getZonedTime >>= return . formatTime' >>= putStr
-      where
-        formatTime' = formatTime defaultTimeLocale "%Y-%m-%d_%H:%M:%S"
 
 toRequest :: CrawlAction -> RequestType
 toRequest (GetRequest url) = addStandardHeader $ mkRequest GET (toURI url)
@@ -77,7 +66,7 @@ crawl' originalAction maxRedirects request = do
   response <- simpleHTTP request
   body <- getResponseBody response
   code <- getResponseCode response
-  log $ "Crawled " ++ (showRequest request) ++ " with result: " ++ (show code)
+  logMsg $ "Crawled " ++ (showRequest request) ++ " with result: " ++ (show code)
   checkRedirect maxRedirects request (crawlResult response body code)
   where
      crawlResult :: (HasHeaders a) => Result a -> String -> ResponseCode -> CrawlResult

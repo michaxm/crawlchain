@@ -16,7 +16,7 @@ import Network.CrawlChain.CrawlingContext
 import Network.CrawlChain.CrawlDirective
 import Network.CrawlChain.DirectiveChainResult
 import Network.CrawlChain.Report
-
+import Network.CrawlChain.Util
 
 executeCrawlChain :: CrawlingContext a => a -> CrawlAction -> CrawlDirective -> IO [DirectiveChainResult]
 executeCrawlChain = followDirective [] []
@@ -51,10 +51,13 @@ followDirective collectedResults reportPath context crawlAction = followDirectiv
     followDirective' (SimpleDirective logic) = crawlAndSearch (logic . crawlingContent)
     followDirective' (RelativeDirective logic) = crawlAndSearch (makeAbsoluteLogicMapper logic)
     followDirective' (FollowUpDirective logic) = crawlAndSearch logic
+    followDirective' (DelayDirective sec d) = delaySeconds sec >> followDirective' d
     followDirective' (RetryDirective num d) = do
       results <- followDirective' d
       if num > 0 && all (null . lastResult) results
-        then followDirective' $ RetryDirective (num-1) d
+        then do
+             putStrLn $ "retrying "++(show num)++" more times"
+             followDirective' $ RetryDirective (num-1) d
         else return results
     followDirective' (AlternativeDirective a1 a2) = do
       a1Results <- followDirective' a1
@@ -67,11 +70,13 @@ followDirective collectedResults reportPath context crawlAction = followDirectiv
     crawlAndSearch :: (CrawlResult -> [CrawlAction]) -> IO [DirectiveChainResult]
     crawlAndSearch searchLogic = crawler context crawlAction >>= processCrawlingResult
       where
-        processCrawlingResult crawlingResult = return searchCrawlingResult >>= logSearchResults >>= return . wrapActions >>= appendResult
-          where
+        processCrawlingResult crawlingResult =
+          return searchCrawlingResult >>= logSearchResults >>= return . wrapActions >>= appendResult where
             searchCrawlingResult :: [CrawlAction]
             searchCrawlingResult = if crawlWasNoSuccess crawlingResult then [] else searchLogic crawlingResult
-            logSearchResults res = putStrLn ("  found " ++ (show $ length res) ++" follow-up actions:" ++ (show $ map crawlUrl $ res)) >> return res
+            logSearchResults res =
+              putStrLn ("  found " ++ (show $ length res) ++" follow-up actions:" ++ (show $ map crawlUrl $ res))
+              >> return res
             wrapActions :: [CrawlAction] -> DirectiveChainResult
             wrapActions res
                 | null res = DirectiveChainResult (errReport crawlingResult:reportPath) []
