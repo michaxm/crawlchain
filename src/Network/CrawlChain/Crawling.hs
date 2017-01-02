@@ -65,11 +65,11 @@ makePostHeaders _ _ = []
 
 crawl' :: CrawlAction -> Int -> RequestType -> IO CrawlResult
 crawl' originalAction maxRedirects request = do
-  print request
+--  print request
   response <- simpleHTTP request
 --  print response
   body <- getResponseBody response
-  print body
+--  print body
   code <- getResponseCode response
   logMsg $ "Crawled " ++ (showRequest request) ++ " with result: " ++ (show code)
   checkRedirect maxRedirects request (crawlResult response body code)
