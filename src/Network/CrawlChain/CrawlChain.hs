@@ -50,16 +50,13 @@ downloadStep dir fName downloadAction = maybe (return ()) (downloadTo (Just dir)
 logAndReturnFirstOk :: [DirectiveChainResult] -> IO (Maybe CrawlAction)
 logAndReturnFirstOk results = do
   firstOk <- (return . extractFirstResult) results
-  putResults firstOk results
+  putDetailsOnFailure firstOk results
   return firstOk
 
-putResults :: Maybe CrawlAction -> [DirectiveChainResult] -> IO ()
-putResults firstSuccess results =
-  maybe writeFailures putSuccess firstSuccess
-    where
-      putSuccess :: CrawlAction -> IO ()
-      putSuccess a = putStrLn (crawlUrl a)
-      writeFailures = do
-        putStrLn "no results found, look into failures.log"
-        writeFile "failures.log" showAllFailures
-          where showAllFailures = concat $ intersperse "\n\n" $ map showResultPath results
+putDetailsOnFailure :: Maybe CrawlAction -> [DirectiveChainResult] -> IO ()
+putDetailsOnFailure firstSuccess results =
+  case firstSuccess of
+   Just _ -> return ()
+   Nothing -> do
+     putStrLn $ "no results found - details: " ++ showAllFailures where
+       showAllFailures = concat $ intersperse "\n\n" $ map showResultPath results
