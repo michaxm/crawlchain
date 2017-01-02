@@ -1,6 +1,10 @@
 module Network.CrawlChain.CrawlAction where
 
-data PostType = Undefined | PostForm deriving (Show, Eq)
+data PostType
+ = Undefined
+ | PostForm
+ | PostAJAX
+ deriving (Show, Eq)
 type PostParams = [(String, String)] 
 
 data CrawlAction = GetRequest String

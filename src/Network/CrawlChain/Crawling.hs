@@ -59,12 +59,17 @@ makePostHeaders PostForm formParams =
     mkHeader HdrContentType "application/x-www-form-urlencoded",
     mkHeader HdrContentLength (show $ length formParams)
   ]
+makePostHeaders PostAJAX formParams = ajaxHeader:(makePostHeaders PostForm formParams) where
+  ajaxHeader = mkHeader (HdrCustom "X-Requested-With") "XMLHttpRequest"
 makePostHeaders _ _ = []
 
 crawl' :: CrawlAction -> Int -> RequestType -> IO CrawlResult
 crawl' originalAction maxRedirects request = do
+  print request
   response <- simpleHTTP request
+--  print response
   body <- getResponseBody response
+  print body
   code <- getResponseCode response
   logMsg $ "Crawled " ++ (showRequest request) ++ " with result: " ++ (show code)
   checkRedirect maxRedirects request (crawlResult response body code)
