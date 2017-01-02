@@ -79,13 +79,13 @@ followDirective collectedResults reportPath context crawlAction = followDirectiv
               >> return res
             wrapActions :: [CrawlAction] -> DirectiveChainResult
             wrapActions res
-                | null res = DirectiveChainResult (errReport crawlingResult:reportPath) []
+                | null res = DirectiveChainResult (reportPath ++ [errReport crawlingResult]) []
                 | otherwise = DirectiveChainResult updateReportPath res
               where
                 updateReportPath :: [Report]
                 updateReportPath = okReport crawlingResult : reportPath
             appendResult :: DirectiveChainResult -> IO [DirectiveChainResult]
-            appendResult = return . (collectedResults ++) . (:[])
+            appendResult res = return $ collectedResults ++ [res]
 
 {-
  Whereas definition of single directives is pretty straightforward to understand, sequences are handled in this internal method. Notes:
