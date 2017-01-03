@@ -1,8 +1,8 @@
-module Network.CrawlChain.CrawlChain
-       (executeActions, crawlChain, crawlForUrl,
-        executeCrawlChain -- visible for tests
-       )
-       where
+module Network.CrawlChain.CrawlChain (
+  crawlChain, crawlChains, -- primary interface
+  executeActions, crawlForUrl, -- legacy, deprecated
+  executeCrawlChain -- visible for tests
+  ) where
 
 import Data.List (intersperse)
 import Data.List.Split (splitOn)
@@ -33,13 +33,19 @@ crawlForUrl args = do
        (Just _) -> putStrLn "POST result processing not implemented" >> return Nothing
        Nothing -> return Nothing
 
+{-|
+ Returns only the first result of a completely matching branch of the crawling directive.
+-}
 crawlChain :: CrawlingParameters -> IO (Maybe CrawlAction)
 crawlChain args = do
-  results <- crawlingChain
+  results <- crawlChains args
   logAndReturnFirstOk results
-  where
-    crawlingChain :: IO [DirectiveChainResult]
-    crawlingChain =
+
+{-|
+ Returns all possible results of the craling directive - meant to be used with lazyness in mind as needed.
+-}
+crawlChains :: CrawlingParameters -> IO [DirectiveChainResult]
+crawlChains args =
       executeCrawlChain context (paramInitialAction args) (paramCrawlDirective args)
         where
           context = if paramDoStore args then storingContext else defaultContext
@@ -56,7 +62,7 @@ logAndReturnFirstOk results = do
 putDetailsOnFailure :: Maybe CrawlAction -> [DirectiveChainResult] -> IO ()
 putDetailsOnFailure firstSuccess results =
   case firstSuccess of
-   Just _ -> return ()
+   Just a -> putStr "  Using result: " >> print a
    Nothing -> do
-     putStrLn $ "no results found - details: " ++ showAllFailures where
+     putStrLn $ "  No results found - details: " ++ showAllFailures where
        showAllFailures = concat $ intersperse "\n\n" $ map showResultPath results
