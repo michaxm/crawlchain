@@ -11,4 +11,5 @@ data CrawlDirective =
   | RetryDirective Int CrawlDirective                  -- | if given directive yields no results use add. retries
   | AlternativeDirective CrawlDirective CrawlDirective -- | fallback to second argument if first yields no results
   | RestartChainDirective (CrawlAction, CrawlDirective)-- | the possibility to start a new chain (when using alternative)
+  | GuardDirective (CrawlAction -> Bool)               -- | not crawling anything, just a blacklisting option
   | DirectiveSequence [CrawlDirective]                 -- | chaining of directives

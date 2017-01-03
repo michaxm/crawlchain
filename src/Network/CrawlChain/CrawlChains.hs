@@ -66,6 +66,10 @@ followDirective collectedResults reportPath context crawlAction = followDirectiv
         else return a1Results
     followDirective' (RestartChainDirective restart) =
       uncurry (followDirective collectedResults reportPath context) restart
+    folĺowDirective' (GuardDirective filter) =
+      if filter crawlAction
+      then return [DirectiveChainResult reportPath [crawlAction]]
+      else return []
     -- actual crawling happens here (and only here):
     crawlAndSearch :: (CrawlResult -> [CrawlAction]) -> IO [DirectiveChainResult]
     crawlAndSearch searchLogic = crawler context crawlAction >>= processCrawlingResult
