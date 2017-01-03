@@ -3,14 +3,11 @@ module Network.CrawlChain.BasicTemplates (
   searchWebTemplateAndProcessHits
   ) where
 
-import Data.List (nub, isInfixOf, isSuffixOf)
-import Data.List.Split (splitOn)
-import Data.Maybe (maybeToList)
+import Data.List (nub, isInfixOf)
 
 import Network.CrawlChain.CrawlAction
 import Network.CrawlChain.CrawlResult
 import Network.CrawlChain.CrawlDirective
-import Network.CrawlChain.CrawlingParameters
 import Text.HTML.CrawlChain.HtmlFiltering
 
 -- generic search template
@@ -49,8 +46,10 @@ filterToUrlsContainingText :: ContainedTextFilter -> String -> String -> [CrawlA
 filterToUrlsContainingText textFilter marker =
   retainActionsContaining marker . extractLinksFilteringAll noUrlFilter noAttrFilter textFilter
 
+{- unused - temporary?
 filterToUrlsContaining :: String -> String -> [CrawlAction]
 filterToUrlsContaining = filterToUrlsContainingText noTextFilter
+-}
 
 retainActionsContaining :: String -> [CrawlAction] -> [CrawlAction]
 retainActionsContaining marker = filter ((marker `isInfixOf`) . crawlUrl)
