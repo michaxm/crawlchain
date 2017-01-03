@@ -24,6 +24,7 @@ For productive integration:
 - Restructured to be able to direct to that search after the initial action (FallbackDirective) (DONE)
 - Got scared to break stuff and of checking that manually, added nice testing support for complete crawlchains. (DONE)
 - Integration of a web search fallback into a working (test) example (DONE)
+- Added guards for additional filtering of actions (in particular at the end of a chain).
 
 Roadmap (next steps)
 --------------------
