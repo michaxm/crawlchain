@@ -1,13 +1,10 @@
 module Network.CrawlChain.CrawlChain (
-  crawlChain, crawlChains, -- primary interface
+  crawlChain, crawlChains, -- primary interface 
   executeActions, crawlForUrl, -- legacy, deprecated
   executeCrawlChain -- visible for tests
   ) where
 
 import Data.List (intersperse)
-import Data.List.Split (splitOn)
-import System.Environment (getArgs, getProgName)
-import System.Exit (exitFailure)
 
 import Network.CrawlChain.CrawlAction
 import Network.CrawlChain.CrawlingParameters
@@ -15,8 +12,6 @@ import Network.CrawlChain.CrawlChains
 import Network.CrawlChain.CrawlingContext (defaultContext, storingContext)
 import Network.CrawlChain.DirectiveChainResult (extractFirstResult)
 import Network.CrawlChain.Downloading
-import Network.CrawlChain.Storing
-import Network.CrawlChain.BasicTemplates
 
 executeActions :: CrawlingParameters -> String -> String -> IO ()
 executeActions args dir fName = do
