@@ -13,6 +13,8 @@ main = do
   match (extractLinksFilteringAll unevaluated unevaluated unevaluated) "<a href=\"link\">text<span>bla</span></a>" ["link"]
   match (extractLinksFilteringAll unevaluated unevaluated (any (=="bla"))) "<a href=\"link\">text<span>bla</span></a>" ["link"]
   match (extractLinksFilteringAll unevaluated unevaluated (not . any (=="bla"))) "<a href=\"link\">text<span>bla</span></a>" []
+  match extractLinks "<iframe src=\"link\"></iframe>" ["link"]
+  match extractLinks "<iframe src=\"link\"/>" ["link"]
     where
       match method input expected = 
         if actual /= map GetRequest expected

@@ -1,5 +1,5 @@
 module Text.HTML.CrawlChain.HtmlFiltering (
-  extractLinks, extractLinksMatching, extractLinksWithAttributes, extractLinksFilteringUrlAttrs, extractLinksFilteringAll,
+  extractLinks, extractLinksMatching, extractLinksWithAttributes, extractLinksFilteringUrlAttrs, extractLinksFilteringAll, unevaluated,
   findAllUrlsEndingWith, findFirstLinkAfter,
   extractFirstForm,
   Method(..),
@@ -66,7 +66,8 @@ extractLinksFiltering linkFilter =
   parseTags
   where
     filterAndGroupLinks :: [TagS] -> [[TagS]]
-    filterAndGroupLinks = map cleanupLinkGroup . splitWhen' (isTagOpenName "a")
+    filterAndGroupLinks =
+      map cleanupLinkGroup . splitWhen' (\t -> isTagOpenName "a" t || isTagOpenName "iframe" t)
       where
         splitWhen' :: (a -> Bool) -> [a] -> [[a]]
         splitWhen' f = splitWhen'' []
@@ -74,7 +75,10 @@ extractLinksFiltering linkFilter =
             splitWhen'' col [] = [col]
             splitWhen'' col (x:rest) = if f x then col:(splitWhen'' [x] rest) else splitWhen'' (col++[x]) rest
         cleanupLinkGroup :: [TagS] -> [TagS]
-        cleanupLinkGroup = takeWhile (not . (isTagCloseName "a")) . dropWhile (not . (isTagOpenName "a"))
+        cleanupLinkGroup = takeWhile notEndSrcTag . dropWhile notStartSrcTag where
+          notStartSrcTag t = not $ any (flip isTagOpenName t) supportedTags -- (not . (isTagOpenName "a"))
+          notEndSrcTag t = not $ any (flip isTagCloseName t) supportedTags
+          supportedTags =  ["a", "iframe"]
 
 findFirstLinkAfter :: String -> [(String, String)] -> String -> [CrawlAction]
 findFirstLinkAfter tagName tagAttrs =
@@ -92,7 +96,7 @@ findFirstLinkAfter tagName tagAttrs =
     isLink _ = False
 
 getSrc :: Tag String -> String
-getSrc (TagOpen _ as) = fromMaybe "" (lookup "href" as)
+getSrc (TagOpen _ attributes) = fromMaybe (fromMaybe "" (lookup "src" attributes)) (lookup "href" attributes)
 getSrc _ = []
 
 getTagAttrs :: Tag String -> [(String, String)]
