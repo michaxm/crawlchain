@@ -20,9 +20,16 @@ import Network.CrawlChain.Util
 type Crawler = CrawlAction -> IO CrawlResult
 type CrawlActionDescriber = CrawlAction -> String
 
+{-|
+ Processes one step of a crawl chain: does the actual loading.
+-}
 crawl :: Crawler
 crawl action = delaySeconds 1 >> crawlInternal action
 
+{-|
+ Used for preparation of integration tests: additionally stores the crawl result
+ using the given file name strategy.
+-}
 crawlAndStore :: CrawlActionDescriber -> Crawler
 crawlAndStore describer = (>>= store) . crawl
     where

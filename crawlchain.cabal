@@ -42,9 +42,10 @@ library
                      , network-uri
                      , split
                      , tagsoup
+                     , text
                      , time
   default-language:    Haskell2010
-  ghc-options:         -Wall
+  ghc-options:         -Wall -threaded
 
 
 Test-Suite html-tests

@@ -19,12 +19,15 @@ Finalizing:
 - Downloading of binary files. (DONE - but very primitive, in memory instead of streaming, external download favored)
 
 For productive integration:
-- Sample-Template for ixquick search (DONE, yahoo due to missing https support of used libs)
+- Sample-Template for ixquick search (DONE, yahoo due to missing https support of used libs (obsolete))
 - Adding a web search template (used yahoo because it supports non-https, see below) (DONE)
 - Restructured to be able to direct to that search after the initial action (FallbackDirective) (DONE)
 - Got scared to break stuff and of checking that manually, added nice testing support for complete crawlchains. (DONE)
 - Integration of a web search fallback into a working (test) example (DONE)
 - Added guards for additional filtering of actions (in particular at the end of a chain).
+
+Later implementations:
+- Support for https (switched from HTTP to http-streams) (DONE)
 
 Roadmap (next steps)
 --------------------
@@ -33,7 +36,6 @@ Roadmap (next steps)
 
 Future plans (maybe)
 --------------------
-- Support for https (switch from http to http-conduit or maybe wreq)
 - Implement a DSL for supplying crawling templates as text file - more experience with new templates needed first.
 
 Scope (never)
