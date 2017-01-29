@@ -1,11 +1,7 @@
 module Network.CrawlChain.Downloading (downloadTo, storeDownloadAction) where
 
-import Data.ByteString as B
-import Network.HTTP
---import Network.Stream
---import Pipes
---import Pipes.HTTP
---import qualified Pipes.ByteString as PB  -- from `pipes-bytestring`
+import qualified Data.ByteString.Char8 as BC
+import qualified Network.Http.Client as C
 
 import Network.CrawlChain.CrawlAction
 import Network.URI.Util
@@ -14,9 +10,8 @@ import Network.CrawlChain.Storing
 downloadTo :: Maybe String -> String -> CrawlAction -> IO ()
 downloadTo dir destination (GetRequest url) = buildAndCreateTargetDir True dir destination >>= \fulldestination -> do
   Prelude.putStrLn $ "Downloading from "++url++" to "++fulldestination
-  downloadResult <- simpleHTTP (defaultGETRequest_ (toURI url))
-  responseBody <- getResponseBody downloadResult
-  B.writeFile fulldestination responseBody
+  downloadResult <- C.get (BC.pack url) C.concatHandler
+  BC.writeFile fulldestination downloadResult
   Prelude.putStrLn $ "Download finished"
 downloadTo _ _ req = Prelude.putStrLn $ "POST Requests not supported: " ++ show req
 

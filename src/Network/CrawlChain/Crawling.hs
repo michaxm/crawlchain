@@ -4,21 +4,19 @@ module Network.CrawlChain.Crawling (
   Crawler
 ) where
 
-import Network.HTTP
-import Network.Stream (Result)
-import Network.URI
+
+import qualified Data.ByteString.Char8 as BC
+import qualified Network.Http.Client as C
 
 import Network.CrawlChain.CrawlAction
 import Network.CrawlChain.CrawlResult
 import Network.CrawlChain.Util
-import Network.URI.Util
 
-type RequestType = Request_String
 type Crawler = CrawlAction -> IO CrawlResult
 type CrawlActionDescriber = CrawlAction -> String
 
 crawl :: Crawler
-crawl action = delaySeconds 1 >> crawl' action 3 (toRequest action)
+crawl action = delaySeconds 1 >> crawlInternal action 3 action
 
 crawlAndStore :: CrawlActionDescriber -> Crawler
 crawlAndStore describer = (>>= store) . crawl
@@ -36,7 +34,7 @@ crawlAndStore describer = (>>= store) . crawl
                 writeFile' n c = do
                   putStrLn $ "writing to " ++ n
                   writeFile n c
-
+{-
 toRequest :: CrawlAction -> RequestType
 toRequest (GetRequest url) = addStandardHeader $ mkRequest GET (toURI url)
 toRequest (PostRequest url params postType) =
@@ -62,29 +60,36 @@ makePostHeaders PostForm formParams =
 makePostHeaders PostAJAX formParams = ajaxHeader:(makePostHeaders PostForm formParams) where
   ajaxHeader = mkHeader (HdrCustom "X-Requested-With") "XMLHttpRequest"
 makePostHeaders _ _ = []
+-}
 
-crawl' :: CrawlAction -> Int -> RequestType -> IO CrawlResult
-crawl' originalAction maxRedirects request = do
+crawlInternal :: CrawlAction -> Int -> CrawlAction -> IO CrawlResult
+crawlInternal originalAction maxRedirects action = do
 --  print request
-  response <- simpleHTTP request
+  response <- doRequest action
 --  print response
-  body <- getResponseBody response
+--  body <- getResponseBody response
 --  print body
-  code <- getResponseCode response
-  logMsg $ "Crawled " ++ (showRequest request) ++ " with result: " ++ (show code)
-  checkRedirect maxRedirects request (crawlResult response body code)
+--  code <- getResponseCode response
+  logMsg $ "Crawled " ++ (show action)
+  return $ CrawlResult originalAction (BC.unpack response) CrawlingOk
+--  checkRedirect maxRedirects request (crawlResult response body code)
   where
-     crawlResult :: (HasHeaders a) => Result a -> String -> ResponseCode -> CrawlResult
-     crawlResult response body code = CrawlResult originalAction body (parseResonseCode code (locationHeaders response))
+    doRequest (GetRequest url) = C.get (BC.pack url) C.concatHandler -- TODO check exceptions with concatHandler'
+    doRequest (PostRequest _ _ _) = error $ "FIXME POST"
+{-    
+    crawlResult :: (HasHeaders a) => Result a -> String -> ResponseCode -> CrawlResult
+    crawlResult response body code = CrawlResult originalAction body (parseResonseCode code (locationHeaders response))
       where
         locationHeaders :: (HasHeaders a) => Result a -> [Header]
         locationHeaders = either (\_ -> []) (retrieveHeaders HdrLocation)
+-}
 
 -- this reinvents the wheel and should be switched to using http-client if problems occur
+{-
 checkRedirect :: Int -> RequestType -> CrawlResult -> IO CrawlResult
 checkRedirect 0 _ result = return result
 checkRedirect maxRedirects previousRequest result =
-  maybe (return result) (crawl' (crawlingAction result) (maxRedirects -1)) (extractRedirectAction $ crawlingResultStatus result)
+  maybe (return result) (crawlInternal (crawlingAction result) (maxRedirects -1)) (extractRedirectAction $ crawlingResultStatus result)
   where
     extractRedirectAction :: CrawlingResultStatus -> Maybe (Request String)
      -- unclean: converts PostRequest to Get, should do something more sensible
@@ -104,4 +109,4 @@ extractRedirectUrl ((Header _ value):xs) =
 
 showRequest :: RequestType -> String
 showRequest r = (show $ rqURI r) ++ " - " ++ (show $ rqMethod r) ++ ": " ++ (rqBody r)
-
+-}
