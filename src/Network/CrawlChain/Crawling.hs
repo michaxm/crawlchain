@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Network.CrawlChain.Crawling (
   crawl,
   crawlAndStore, CrawlActionDescriber,
@@ -5,8 +6,12 @@ module Network.CrawlChain.Crawling (
 ) where
 
 
+import Control.Exception (bracket)
 import qualified Data.ByteString.Char8 as BC
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Network.Http.Client as C
+import Network.URI (URI (..), parseURI)
 
 import Network.CrawlChain.CrawlAction
 import Network.CrawlChain.CrawlResult
@@ -16,7 +21,7 @@ type Crawler = CrawlAction -> IO CrawlResult
 type CrawlActionDescriber = CrawlAction -> String
 
 crawl :: Crawler
-crawl action = delaySeconds 1 >> crawlInternal action 3 action
+crawl action = delaySeconds 1 >> crawlInternal action
 
 crawlAndStore :: CrawlActionDescriber -> Crawler
 crawlAndStore describer = (>>= store) . crawl
@@ -34,79 +39,59 @@ crawlAndStore describer = (>>= store) . crawl
                 writeFile' n c = do
                   putStrLn $ "writing to " ++ n
                   writeFile n c
-{-
-toRequest :: CrawlAction -> RequestType
-toRequest (GetRequest url) = addStandardHeader $ mkRequest GET (toURI url)
-toRequest (PostRequest url params postType) =
-  plainPost {rqBody = formParams,
-             rqHeaders = makePostHeaders postType formParams
-            }
-    where
-     plainPost :: RequestType
-     plainPost = addStandardHeader $ mkRequest POST (toURI url)
-     formParams = urlEncodeVars params
 
-addStandardHeader :: (HasHeaders h) => h -> h
-addStandardHeader = insertHeaders [
-  Header HdrUserAgent "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:38.0) Gecko/20100101 Firefox/38.0"
-  ]
-
-makePostHeaders :: PostType -> String -> [Header]
-makePostHeaders PostForm formParams =
-  [
-    mkHeader HdrContentType "application/x-www-form-urlencoded",
-    mkHeader HdrContentLength (show $ length formParams)
-  ]
-makePostHeaders PostAJAX formParams = ajaxHeader:(makePostHeaders PostForm formParams) where
-  ajaxHeader = mkHeader (HdrCustom "X-Requested-With") "XMLHttpRequest"
-makePostHeaders _ _ = []
--}
-
-crawlInternal :: CrawlAction -> Int -> CrawlAction -> IO CrawlResult
-crawlInternal originalAction maxRedirects action = do
+crawlInternal :: CrawlAction -> IO CrawlResult
+crawlInternal action = do
 --  print request
   response <- doRequest action
---  print response
---  body <- getResponseBody response
---  print body
---  code <- getResponseCode response
+-- print response
   logMsg $ "Crawled " ++ (show action)
-  return $ CrawlResult originalAction (BC.unpack response) CrawlingOk
---  checkRedirect maxRedirects request (crawlResult response body code)
+  return $ CrawlResult action (BC.unpack response) CrawlingOk
   where
+    doRequest :: CrawlAction -> IO (BC.ByteString)
     doRequest (GetRequest url) = C.get (BC.pack url) C.concatHandler -- TODO check exceptions with concatHandler'
-    doRequest (PostRequest _ _ _) = error $ "FIXME POST"
-{-    
-    crawlResult :: (HasHeaders a) => Result a -> String -> ResponseCode -> CrawlResult
-    crawlResult response body code = CrawlResult originalAction body (parseResonseCode code (locationHeaders response))
-      where
-        locationHeaders :: (HasHeaders a) => Result a -> [Header]
-        locationHeaders = either (\_ -> []) (retrieveHeaders HdrLocation)
--}
+    doRequest (PostRequest urlString ps pType) = doPost (BC.pack urlString) formParams pType where
+      formParams = map (\(a, b) -> (BC.pack a, BC.pack b)) ps
+      doPost :: BC.ByteString -> [(BC.ByteString, BC.ByteString)] -> PostType -> IO BC.ByteString
+      doPost url params postType = doPost' postType where
+        doPost' :: PostType -> IO BC.ByteString
+        doPost' Undefined = doPost' PostForm
+        doPost' PostForm = C.postForm url params C.concatHandler
+        doPost' PostAJAX = ajaxRequest url params
 
--- this reinvents the wheel and should be switched to using http-client if problems occur
-{-
-checkRedirect :: Int -> RequestType -> CrawlResult -> IO CrawlResult
-checkRedirect 0 _ result = return result
-checkRedirect maxRedirects previousRequest result =
-  maybe (return result) (crawlInternal (crawlingAction result) (maxRedirects -1)) (extractRedirectAction $ crawlingResultStatus result)
-  where
-    extractRedirectAction :: CrawlingResultStatus -> Maybe (Request String)
-     -- unclean: converts PostRequest to Get, should do something more sensible
-    extractRedirectAction (CrawlingRedirect url) = Just $ previousRequest { rqURI = toURI url }
-    extractRedirectAction _ = Nothing
-
-parseResonseCode :: ResponseCode -> [Header] -> CrawlingResultStatus
-parseResonseCode (2, _, _) _ = CrawlingOk
-parseResonseCode code@(3, _, _) hdrLoc = maybe (CrawlingFailed (show code)) CrawlingRedirect (extractRedirectUrl hdrLoc)
-parseResonseCode code _ = CrawlingFailed (show code)
-
-extractRedirectUrl :: [Header] -> Maybe String
-extractRedirectUrl [] = Nothing
-extractRedirectUrl ((Header _ value):xs) =
-  let parsedHeader = (parseURIReference value)
-  in maybe (extractRedirectUrl xs) (Just . show) parsedHeader
-
-showRequest :: RequestType -> String
-showRequest r = (show $ rqURI r) ++ " - " ++ (show $ rqMethod r) ++ ": " ++ (rqBody r)
--}
+ajaxRequest :: BC.ByteString -> [(BC.ByteString, BC.ByteString)] -> IO BC.ByteString
+ajaxRequest = postRequest C.concatHandler ajaxRequestChanges where
+  ajaxRequestChanges = do
+    C.setContentType "application/x-www-form-urlencoded; charset=UTF-8"
+    C.setAccept "application/json, text/javascript, */*"
+    C.setHeader "X-Requested-With" "XMLHttpRequest"
+  -- I am not terribly enthusiastic about the http-streams interface when changing headers
+  postRequest handler requestChanges url formParams  = do
+    bracket
+      (C.establishConnection url)
+      (C.closeConnection)
+      (process)
+    where
+      u = parseURL url where
+        parseURL :: C.URL -> URI
+        parseURL r' =
+          case parseURI r of
+          Just u'  -> u'
+          Nothing -> error ("Can't parse URI " ++ r)
+          where r = T.unpack $ T.decodeUtf8 r'
+      q = C.buildRequest1 $ do
+        C.http C.POST (path u)
+        C.setAccept $ BC.pack "*/*"
+        C.setContentType $ BC.pack "application/x-www-form-urlencoded"
+        requestChanges where
+          path :: URI -> BC.ByteString
+          path u' =
+            case url' of
+             ""  -> "/"
+             _   -> url'
+            where
+              url' = T.encodeUtf8 $! T.pack $! concat [uriPath u', uriQuery u', uriFragment u']
+      process c = do
+        _ <- C.sendRequest c q (C.encodedFormBody formParams)
+        x <- C.receiveResponse c handler
+        return x
