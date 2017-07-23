@@ -43,7 +43,7 @@ crawlChains :: CrawlingParameters -> IO [DirectiveChainResult]
 crawlChains args =
       executeCrawlChain context (paramInitialAction args) (paramCrawlDirective args)
         where
-          context = if paramDoStore args then storingContext else defaultContext
+          context = if paramDoStore args then storingContext (paramName args) else defaultContext
 
 downloadStep :: String -> String -> Maybe CrawlAction -> IO ()
 downloadStep dir fName downloadAction = maybe (return ()) (downloadTo (Just dir) fName) downloadAction
