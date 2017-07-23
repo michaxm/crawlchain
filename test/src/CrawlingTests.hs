@@ -3,9 +3,9 @@ module Main (main) where
 import Data.Maybe (listToMaybe)
 import System.Exit (exitFailure)
 
+import Network.CrawlChain
 import Network.CrawlChain.CrawlingContext
 import Network.CrawlChain.CrawlAction
-import Network.CrawlChain.CrawlChain
 import Network.CrawlChain.CrawlDirective
 import Network.CrawlChain.DirectiveChainResult
 import Text.HTML.CrawlChain.HtmlFiltering

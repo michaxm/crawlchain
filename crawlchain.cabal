@@ -16,7 +16,7 @@ cabal-version:       >=1.22
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Network.CrawlChain.CrawlChain
+  exposed-modules:     Network.CrawlChain
                      , Network.CrawlChain.CrawlingParameters
                      , Network.CrawlChain.BasicTemplates
                      , Network.CrawlChain.CrawlAction
@@ -64,8 +64,8 @@ Test-Suite html-tests
 Test-Suite crawling-tests
   type: exitcode-stdio-1.0
   main-is: CrawlingTests.hs
-  other-modules:       Network.CrawlChain.CrawlAction
-                     , Network.CrawlChain.CrawlChain
+  other-modules:       Network.CrawlChain
+                     , Network.CrawlChain.CrawlAction
                      , Network.CrawlChain.CrawlChains
                      , Network.CrawlChain.CrawlDirective
                      , Network.CrawlChain.CrawlResult

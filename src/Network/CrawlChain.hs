@@ -1,4 +1,4 @@
-module Network.CrawlChain.CrawlChain (
+module Network.CrawlChain (
   crawlChain, crawlChains, -- primary interface 
   executeActions, crawlForUrl, -- legacy, deprecated
   executeCrawlChain -- visible for tests
