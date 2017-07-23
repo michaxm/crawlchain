@@ -20,6 +20,3 @@ buildAndCreateTargetDir createDir dir dest = do
        return (dir' ++ "/" ++ dest)
        )
    dir
-
-makeFilename :: String -> String -> String -> String
-makeFilename series season episode = series ++ "-S" ++ season++ "E" ++ episode ++ ".mp4"
