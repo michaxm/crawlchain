@@ -1,4 +1,5 @@
 module Text.HTML.CrawlChain.HtmlFiltering (
+  extractTagsContent, findAttributes,
   extractLinks, extractLinksMatching, extractLinksWithAttributes, extractLinksFilteringUrlAttrs, extractLinksFilteringAll, unevaluated,
   findAllUrlsEndingWith, findFirstLinkAfter,
   extractFirstForm,
@@ -17,6 +18,33 @@ import Network.CrawlChain.CrawlAction
 type TagS = Tag String
 type AttrFilter = [(String, String)] -> Bool
 type ContainedTextFilter = [String] -> Bool
+
+{-| (name, content, attributes)-}
+type TagContent = (String, String, [(String, String)])
+
+{-|
+ Content of the tags up to the first child tag (as simplification) - with attributes.
+-}
+extractTagsContent :: String -> [TagContent]
+extractTagsContent  =
+  extractContentFromTagStream ("", "", []) .
+  canonicalizeTags .
+  parseTags
+  where
+    extractContentFromTagStream :: TagContent -> [TagS] -> [(String, String, [(String, String)])]
+    extractContentFromTagStream tagContent@(name, _, _) []
+      | null name = []
+      | otherwise = [tagContent]
+    extractContentFromTagStream tagContent@(name,content,attributes) (t:ts) = handle t where
+      handle (TagText c) = extractContentFromTagStream (name, content ++ c, attributes) ts
+      handle (TagOpen n as) = (if null name then [] else [tagContent]) ++ extractContentFromTagStream (n, "", as) ts
+      handle _ = extractContentFromTagStream tagContent ts
+
+findAttributes :: String -> [TagContent] -> [String]
+findAttributes name = foldr ((++) . findAttr') []
+  where
+    findAttr' :: TagContent -> [String]
+    findAttr' (_, _, as) = map snd $ filter (\(n,_) -> n==name) as
 
 noUrlFilter :: String -> Bool
 noUrlFilter = unevaluated
