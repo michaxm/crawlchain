@@ -57,7 +57,7 @@ crawlInternal action = do
   return $ CrawlResult action (BC.unpack response) CrawlingOk
   where
     doRequest :: CrawlAction -> IO (BC.ByteString)
-    doRequest (GetRequest url) = C.get (BC.pack url) C.concatHandler -- TODO check exceptions with concatHandler'
+    doRequest (GetRequest url) = getRequest (BC.pack url)
     doRequest (PostRequest urlString ps pType) = doPost (BC.pack urlString) formParams pType where
       formParams = map (\(a, b) -> (BC.pack a, BC.pack b)) ps
       doPost :: BC.ByteString -> [(BC.ByteString, BC.ByteString)] -> PostType -> IO BC.ByteString
@@ -66,6 +66,32 @@ crawlInternal action = do
         doPost' Undefined = doPost' PostForm
         doPost' PostForm = C.postForm url params C.concatHandler
         doPost' PostAJAX = ajaxRequest url params
+
+-- reworked from http-streams due to inappropriate escaping/error handling
+getRequest :: BC.ByteString -> IO BC.ByteString
+getRequest = doRequest C.concatHandler -- TODO check exceptions with concatHandler'
+  where
+    doRequest handler url = do
+      bracket
+        (C.establishConnection url)
+        (C.closeConnection)
+        (process)
+      where
+        u = parseURL url where
+          parseURL = toURI . T.unpack . T.decodeUtf8
+        q = C.buildRequest1 $ do
+          C.http C.GET (path u)
+          C.setAccept "*/*" where
+            path :: URI -> BC.ByteString
+            path u' =
+              case url' of
+              ""  -> "/"
+              _   -> url'
+              where
+                url' = T.encodeUtf8 $! T.pack $! concat [uriPath u', uriQuery u', uriFragment u']
+        process c = do
+          C.sendRequest c q C.emptyBody
+          C.receiveResponse c handler -- wrapRedirect is not exposed: (C.wrapRedirect u 0 handler)
 
 ajaxRequest :: BC.ByteString -> [(BC.ByteString, BC.ByteString)] -> IO BC.ByteString
 ajaxRequest = postRequest C.concatHandler ajaxRequestChanges where
@@ -76,7 +102,7 @@ ajaxRequest = postRequest C.concatHandler ajaxRequestChanges where
   -- I am not terribly enthusiastic about the http-streams interface when changing headers
   postRequest handler requestChanges url formParams  = do
     bracket
-      (C.establishConnection url)
+      (C.establishConnection url) -- should this be `u`?
       (C.closeConnection)
       (process)
     where
