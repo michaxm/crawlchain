@@ -11,7 +11,7 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Network.Http.Client as C
-import Network.URI (URI (..), parseURI)
+import Network.URI (URI (..), parseURI, escapeURIString, isUnescapedInURI)
 
 import Network.CrawlChain.CrawlAction
 import Network.CrawlChain.CrawlResult
@@ -81,11 +81,11 @@ ajaxRequest = postRequest C.concatHandler ajaxRequestChanges where
     where
       u = parseURL url where
         parseURL :: C.URL -> URI
-        parseURL r' =
+        parseURL r' =  -- TODO use Network.URI.Util to have only one piece of code doing this
           case parseURI r of
           Just u'  -> u'
-          Nothing -> error ("Can't parse URI " ++ r)
-          where r = T.unpack $ T.decodeUtf8 r'
+          Nothing -> error ("Can't parse URI - FIXME Crawling?: " ++ r)
+          where r = escapeURIString isUnescapedInURI $ T.unpack $ T.decodeUtf8 r'
       q = C.buildRequest1 $ do
         C.http C.POST (path u)
         C.setAccept $ BC.pack "*/*"

@@ -3,6 +3,7 @@ module Main (main) where
 import System.Exit (exitFailure)
 
 import Network.CrawlChain.CrawlAction
+import Network.URI.Util
 import Text.HTML.CrawlChain.HtmlFiltering
 
 main :: IO ()
@@ -21,6 +22,7 @@ main = do
   match extractTagsContent "<div>sdf</div>" [("div", "sdf", [])]
   match extractTagsContent "<div attr=\"1\">sdf</div>" [("div", "sdf", [("attr", "1")])]
   match extractTagsContent "<script attr=\"some_url\">content</script><div>bla</div>" [("script", "content", [("attr","some_url")]),("div", "bla", [])]
+  match toURI "http://sdf.sdf/α" (toURI "http://sdf.sdf/α")
     where
       match method input expected =
         if actual /= expected
