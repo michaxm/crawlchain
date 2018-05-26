@@ -35,7 +35,7 @@ library
                      , Network.CrawlChain.Report
                      , Network.CrawlChain.Util
                      , Network.Http.ClientFacade
-  build-depends:       base
+  build-depends:       base < 4.10
                      , bytestring
                      , directory
                      , http-streams, HsOpenSSL
