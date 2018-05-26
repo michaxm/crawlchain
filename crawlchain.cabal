@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                crawlchain
-version:             0.3.0.2
+version:             0.3.1.0
 synopsis:            Simulation user crawl paths
 description:         Library for simulating user crawl paths (trees) with selectors - takes an initial action and a chain of processing actions to crawl a tree (lazy, depth first) searching for a matching branch.
 stability:           experimental
@@ -34,10 +34,11 @@ library
                      , Network.CrawlChain.Downloading
                      , Network.CrawlChain.Report
                      , Network.CrawlChain.Util
+                     , Network.Http.ClientFacade
   build-depends:       base
                      , bytestring
                      , directory
-                     , http-streams
+                     , http-streams, HsOpenSSL
                      , network-uri
                      , split
                      , tagsoup
@@ -46,6 +47,27 @@ library
   default-language:    Haskell2010
   ghc-options:         -Wall
 
+
+Test-Suite http-tests
+  type: exitcode-stdio-1.0
+  main-is: HttpTests.hs
+  other-modules:       Network.CrawlChain.CrawlAction
+                     , Network.CrawlChain.CrawlResult
+                     , Network.CrawlChain.Crawling
+                     , Network.CrawlChain.Util
+                     , Network.URI.Util
+                     , Network.Http.ClientFacade
+  hs-source-dirs:      src, test/src
+  build-depends:       base
+                     , crawlchain
+                     , bytestring
+                     , http-streams, HsOpenSSL
+                     , network-uri
+                     , split
+                     , text
+                     , time
+  default-language:    Haskell2010
+  ghc-options:         -Wall
 
 Test-Suite html-tests
   type: exitcode-stdio-1.0
@@ -56,7 +78,6 @@ Test-Suite html-tests
   hs-source-dirs:      src, test/src
   build-depends:       base
                      , crawlchain
-                     , network-uri
                      , split
                      , tagsoup
   default-language:    Haskell2010
@@ -80,13 +101,14 @@ Test-Suite crawling-tests
                      , Network.CrawlChain.Storing
                      , Network.CrawlChain.Util
                      , Network.URI.Util
+                     , Network.Http.ClientFacade
                      , Text.HTML.CrawlChain.HtmlFiltering
   hs-source-dirs:      src, test/src
   build-depends:       base
                      , crawlchain
                      , bytestring
                      , directory
-                     , http-streams
+                     , http-streams, HsOpenSSL
                      , network-uri
                      , text
                      , time

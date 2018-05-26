@@ -1,22 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Network.CrawlChain.Crawling (
   crawl,
   crawlAndStore, CrawlActionDescriber,
   Crawler
 ) where
 
-
-import Control.Exception (bracket)
 import qualified Data.ByteString.Char8 as BC
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import qualified Network.Http.Client as C
-import Network.URI (URI(..))
 
 import Network.CrawlChain.CrawlAction
 import Network.CrawlChain.CrawlResult
 import Network.CrawlChain.Util
-import Network.URI.Util
+import Network.Http.ClientFacade
 
 type Crawler = CrawlAction -> IO CrawlResult
 type CrawlActionDescriber = CrawlAction -> String
@@ -66,62 +60,3 @@ crawlInternal action = do
         doPost' Undefined = doPost' PostForm
         doPost' PostForm = C.postForm url params C.concatHandler
         doPost' PostAJAX = ajaxRequest url params
-
--- reworked from http-streams due to inappropriate escaping/error handling
-getRequest :: BC.ByteString -> IO BC.ByteString
-getRequest = doRequest C.concatHandler -- TODO check exceptions with concatHandler'
-  where
-    doRequest handler url = do
-      bracket
-        (C.establishConnection url)
-        (C.closeConnection)
-        (process)
-      where
-        u = parseURL url where
-          parseURL = toURI . T.unpack . T.decodeUtf8
-        q = C.buildRequest1 $ do
-          C.http C.GET (path u)
-          C.setAccept "*/*" where
-            path :: URI -> BC.ByteString
-            path u' =
-              case url' of
-              ""  -> "/"
-              _   -> url'
-              where
-                url' = T.encodeUtf8 $! T.pack $! concat [uriPath u', uriQuery u', uriFragment u']
-        process c = do
-          C.sendRequest c q C.emptyBody
-          C.receiveResponse c handler -- wrapRedirect is not exposed: (C.wrapRedirect u 0 handler)
-
-ajaxRequest :: BC.ByteString -> [(BC.ByteString, BC.ByteString)] -> IO BC.ByteString
-ajaxRequest = postRequest C.concatHandler ajaxRequestChanges where
-  ajaxRequestChanges = do
-    C.setContentType "application/x-www-form-urlencoded; charset=UTF-8"
-    C.setAccept "application/json, text/javascript, */*"
-    C.setHeader "X-Requested-With" "XMLHttpRequest"
-  -- I am not terribly enthusiastic about the http-streams interface when changing headers
-  postRequest handler requestChanges url formParams  = do
-    bracket
-      (C.establishConnection url) -- should this be `u`?
-      (C.closeConnection)
-      (process)
-    where
-      u = parseURL url where
-        parseURL :: C.URL -> URI
-        parseURL = toURI . T.unpack . T.decodeUtf8
-      q = C.buildRequest1 $ do
-        C.http C.POST (path u)
-        C.setAccept $ BC.pack "*/*"
-        C.setContentType $ BC.pack "application/x-www-form-urlencoded"
-        requestChanges where
-          path :: URI -> BC.ByteString
-          path u' =
-            case url' of
-             ""  -> "/"
-             _   -> url'
-            where
-              url' = T.encodeUtf8 $! T.pack $! concat [uriPath u', uriQuery u', uriFragment u']
-      process c = do
-        _ <- C.sendRequest c q (C.encodedFormBody formParams)
-        x <- C.receiveResponse c handler
-        return x
